@@ -1,0 +1,56 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27,16,2);
+
+// Pin Definitions
+const int trigPin = A0;
+const int echoPin = A1;
+const int led = 13;
+int irPin = 10;
+int ldrPin = A3;
+
+int irValue;
+int ldrValue;
+
+void setup() {
+  lcd.init();
+  lcd.backlight();
+  pinMode(irPin, INPUT);
+  pinMode(ldrPin, INPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(led, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Ultrasonic Distance Measurement
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  long duration = pulseIn(echoPin, HIGH);
+  int distance = duration * 0.034 / 2;
+
+  // IR and LDR Sensor Readings
+  irValue = digitalRead(irPin);
+  ldrValue = analogRead(ldrPin);
+  Serial.println(ldrValue);
+
+  // Door Detection Logic
+  if (distance < 10 || irValue == 0 || ldrValue <= 30) {
+    digitalWrite(led, HIGH);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("SOMEONE'S AT");
+    lcd.setCursor(0, 1);
+    lcd.print("THE DOOR");
+  } else {
+    digitalWrite(led, LOW);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("NO MOVEMENT");
+  }
+}
